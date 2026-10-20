@@ -1,0 +1,151 @@
+schema: '2.0'
+stages:
+  download_esconv:
+    cmd: uv run python scripts/prepare_data.py download --dataset esconv
+    deps:
+    - path: src/careflow/data/download.py
+      hash: md5
+      md5: 15d526cc676630ac7a1e7e6beb35078f
+      size: 1266
+    params:
+      configs/data.yaml:
+        esconv.source:
+          base_url: 
+            https://huggingface.co/datasets/thu-coai/esconv/resolve/32c54c15e7651cd68dfab18eee39f63ff0cc1e82
+          files:
+            ESConv.json: 
+              aa0556c5b330562ba009c1cd5137486bfa2a7255f33225a6524cd58f7efdd9af
+            train.txt: 
+              e545e49c49b5d47636f15702d9acd1f1d0b25a18e8a2d7528ca53a5d341242f8
+            valid.txt: 
+              d3650e8e75e76b7eb63c1ef6e29b175eb5a3f8a78c3f654cab6c5d0d3f2ea6c8
+            test.txt: 
+              fd62a8b3dd9705d8442217fa7f486129ed407f9bf577ca9e710e4a7780f44081
+    outs:
+    - path: data/raw/esconv
+      hash: md5
+      md5: e4ed04f908a0a1a8c345adf5813fac00.dir
+      size: 14801040
+      nfiles: 4
+  prepare_esconv:
+    cmd: uv run python scripts/prepare_data.py prepare --dataset esconv
+    deps:
+    - path: data/raw/esconv
+      hash: md5
+      md5: e4ed04f908a0a1a8c345adf5813fac00.dir
+      size: 14801040
+      nfiles: 4
+    - path: src/careflow/data/esconv.py
+      hash: md5
+      md5: c3ea4fe9ab3c385849b65fb64502a26d
+      size: 3081
+    - path: src/careflow/data/prepare.py
+      hash: md5
+      md5: 473754d06a855af04059ea208bd8b3ee
+      size: 2306
+    - path: src/careflow/data/schema.py
+      hash: md5
+      md5: 173da7029a4472b68d94fcffda6f2f53
+      size: 1113
+    outs:
+    - path: data/processed/esconv/stats.json
+      hash: md5
+      md5: 86ed6c5f33c08a7a6bd7cf273db2ac5c
+      size: 732
+    - path: data/processed/esconv/test.jsonl
+      hash: md5
+      md5: 764d97f957fea2f3d91353d3334dba31
+      size: 1012756
+    - path: data/processed/esconv/train.jsonl
+      hash: md5
+      md5: 6fa995c0e47cd2473b8ccf28bec65d58
+      size: 4614226
+    - path: data/processed/esconv/valid.jsonl
+      hash: md5
+      md5: d8b58cb1e631fbb948de875462d93513
+      size: 988194
+  download_empathetic_dialogues:
+    cmd: uv run python scripts/prepare_data.py download --dataset 
+      empathetic_dialogues
+    deps:
+    - path: src/careflow/data/download.py
+      hash: md5
+      md5: 15d526cc676630ac7a1e7e6beb35078f
+      size: 1266
+    params:
+      configs/data.yaml:
+        empathetic_dialogues.source:
+          base_url: https://dl.fbaipublicfiles.com/parlai/empatheticdialogues
+          files:
+            empatheticdialogues.tar.gz: 
+              56f234d77b7dd1f005fd365bb17769cfe346c3c84295b69bc069c8ccb83be03d
+          extract: empatheticdialogues.tar.gz
+    outs:
+    - path: data/raw/empathetic_dialogues
+      hash: md5
+      md5: c09085ee4c9846bd7b74d761cfefbf91.dir
+      size: 120914814
+      nfiles: 4
+  prepare_empathetic_dialogues:
+    cmd: uv run python scripts/prepare_data.py prepare --dataset 
+      empathetic_dialogues
+    deps:
+    - path: data/raw/empathetic_dialogues
+      hash: md5
+      md5: c09085ee4c9846bd7b74d761cfefbf91.dir
+      size: 120914814
+      nfiles: 4
+    - path: src/careflow/data/empathetic_dialogues.py
+      hash: md5
+      md5: 8e67ee33b19ca40df4688bbdce64fc6b
+      size: 2485
+    - path: src/careflow/data/prepare.py
+      hash: md5
+      md5: 473754d06a855af04059ea208bd8b3ee
+      size: 2306
+    - path: src/careflow/data/schema.py
+      hash: md5
+      md5: 173da7029a4472b68d94fcffda6f2f53
+      size: 1113
+    outs:
+    - path: data/processed/empathetic_dialogues/stats.json
+      hash: md5
+      md5: 69a921d66d2e41cc236b97a046a70641
+      size: 410
+    - path: data/processed/empathetic_dialogues/test.jsonl
+      hash: md5
+      md5: 8959ac21da27e784412f87c1f05c540b
+      size: 2480480
+    - path: data/processed/empathetic_dialogues/train.jsonl
+      hash: md5
+      md5: 770c437a09d61d97985a3a7adda0516c
+      size: 17730557
+    - path: data/processed/empathetic_dialogues/valid.jsonl
+      hash: md5
+      md5: 109cfe18b31fcb82bf007f9afa471e1b
+      size: 2617001
+  download_heart:
+    cmd: uv run python scripts/prepare_data.py download --dataset heart
+    deps:
+    - path: src/careflow/data/download.py
+      hash: md5
+      md5: 78d313b16b6a6a6890a99fac949c1156
+      size: 1320
+    params:
+      configs/data.yaml:
+        heart.source:
+          base_url: 
+            https://raw.githubusercontent.com/Hippocratic-AI-Research/HEART/c3387b4371ea156832f074454a2f4d006ceed66f
+          files:
+            data/dialogues_regular.json: 
+              75d2ca76b02f24badb989548bbfeaf1cf7bb94a089e0801dd9ae1e750c277ad0
+            data/dialogues_adversarial.json: 
+              ddc161df413a477a87e5be41d6a396ba05e51b3a58332b7eb05f54bbba6e2386
+            all_model_completions_merged_all_models.json: 
+              821786985a90303fc54cfe79308ce11f56058b089a2090bd765a72d847fd768b
+    outs:
+    - path: data/raw/heart
+      hash: md5
+      md5: 77c10fcfd5e1710f9d3d971e2ab766e0.dir
+      size: 2043858
+      nfiles: 3

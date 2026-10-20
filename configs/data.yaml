@@ -1,0 +1,42 @@
+# Dataset sources. One section per dataset; DVC reads paths from here (vars), the code via --dataset.
+
+# ESConv (Liu et al., ACL 2021, arXiv:2106.01144). License: CC BY-NC 4.0.
+# This HF release has 1300 dialogues (the ACL paper reports 1053; this is the extended version).
+# "official" = the thu-coai 70/15/15 split (random.seed(13)), used by most ESC papers.
+# Membership is recovered by matching dialogue content, not by replaying the RNG.
+esconv:
+  source:
+    # Pinned HF dataset revision; every file is checked against its sha256.
+    base_url: https://huggingface.co/datasets/thu-coai/esconv/resolve/32c54c15e7651cd68dfab18eee39f63ff0cc1e82
+    files:
+      ESConv.json: aa0556c5b330562ba009c1cd5137486bfa2a7255f33225a6524cd58f7efdd9af
+      train.txt: e545e49c49b5d47636f15702d9acd1f1d0b25a18e8a2d7528ca53a5d341242f8
+      valid.txt: d3650e8e75e76b7eb63c1ef6e29b175eb5a3f8a78c3f654cab6c5d0d3f2ea6c8
+      test.txt: fd62a8b3dd9705d8442217fa7f486129ed407f9bf577ca9e710e4a7780f44081
+  raw_dir: data/raw/esconv
+  processed_dir: data/processed/esconv
+  split: official
+
+# EmpatheticDialogues (Rashkin et al., ACL 2019). License: CC BY-NC 4.0.
+# Original Meta archive (the one facebook/empathetic_dialogues' loader script points to).
+# Original train/valid/test CSVs.
+empathetic_dialogues:
+  source:
+    base_url: https://dl.fbaipublicfiles.com/parlai/empatheticdialogues
+    files:
+      empatheticdialogues.tar.gz: 56f234d77b7dd1f005fd365bb17769cfe346c3c84295b69bc069c8ccb83be03d
+    extract: empatheticdialogues.tar.gz
+  raw_dir: data/raw/empathetic_dialogues
+  processed_dir: data/processed/empathetic_dialogues
+  split: official
+
+# HEART (Iyer et al., arXiv:2601.19922). GitHub release, Apache-2.0. Human pairwise judgments are NOT released.
+# 240/300 contexts overlap ESConv (see docs/data.md) — exclude ESConv-train overlaps when a system was trained on ESConv.
+heart:
+  source:
+    base_url: https://raw.githubusercontent.com/Hippocratic-AI-Research/HEART/c3387b4371ea156832f074454a2f4d006ceed66f
+    files:
+      data/dialogues_regular.json: 75d2ca76b02f24badb989548bbfeaf1cf7bb94a089e0801dd9ae1e750c277ad0
+      data/dialogues_adversarial.json: ddc161df413a477a87e5be41d6a396ba05e51b3a58332b7eb05f54bbba6e2386
+      all_model_completions_merged_all_models.json: 821786985a90303fc54cfe79308ce11f56058b089a2090bd765a72d847fd768b
+  raw_dir: data/raw/heart

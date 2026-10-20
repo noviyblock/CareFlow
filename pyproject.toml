@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "careflow"
+version = "0.1.0"
+description = "Compute-efficient multi-agent emotional support: adaptive routing, distillation, sycophancy-aware evaluation"
+readme = "README.md"
+license = { file = "LICENSE" }
+# numpy 2.5 requires >=3.12; 3.14 is too new for part of the stack.
+requires-python = ">=3.12,<3.13"
+# Exact pins (PyPI latest as of 2026-09-28). Transitive deps are frozen in uv.lock.
+dependencies = [
+    "torch==2.14.0",
+    "transformers==5.17.0",
+    "datasets==5.0.1",
+    "accelerate==1.15.0",
+    "peft==0.21.0",
+    "trl==1.14.0",
+    "sentence-transformers==6.1.0",
+    "scikit-learn==1.9.1",
+    "scipy==1.18.1",
+    "pandas==3.0.6",
+    "numpy==2.5.3",
+    "mlflow==3.16.1",
+    "dvc==3.67.1",
+    "dvc-s3==3.3.0",
+    "pyyaml==6.0.3",
+    "pydantic==2.13.5",
+    "tenacity==9.1.4",
+]
+
+[project.optional-dependencies]
+# Apple Silicon local inference for 7B–32B agents (quantized).
+mlx = ["mlx-lm==0.32.2", "mlx==0.32.4"]
+# OpenAI-compatible clients for API agents / judges (DeepSeek, vLLM servers, etc.).
+api = ["openai==3.19.2"]
+dev = ["pytest==9.1.1", "ruff==0.16.9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/careflow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

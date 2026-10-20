@@ -1,0 +1,63 @@
+vars:
+  - configs/data.yaml
+
+stages:
+  download_esconv:
+    cmd: uv run python scripts/prepare_data.py download --dataset esconv
+    deps:
+      - src/careflow/data/download.py
+    params:
+      - configs/data.yaml:
+          - esconv.source
+    outs:
+      - ${esconv.raw_dir}
+
+  prepare_esconv:
+    cmd: uv run python scripts/prepare_data.py prepare --dataset esconv
+    deps:
+      - ${esconv.raw_dir}
+      - src/careflow/data/esconv.py
+      - src/careflow/data/schema.py
+      - src/careflow/data/prepare.py
+    outs:
+      - ${esconv.processed_dir}/train.jsonl
+      - ${esconv.processed_dir}/valid.jsonl
+      - ${esconv.processed_dir}/test.jsonl
+    metrics:
+      - ${esconv.processed_dir}/stats.json:
+          cache: false
+
+  download_empathetic_dialogues:
+    cmd: uv run python scripts/prepare_data.py download --dataset empathetic_dialogues
+    deps:
+      - src/careflow/data/download.py
+    params:
+      - configs/data.yaml:
+          - empathetic_dialogues.source
+    outs:
+      - ${empathetic_dialogues.raw_dir}
+
+  prepare_empathetic_dialogues:
+    cmd: uv run python scripts/prepare_data.py prepare --dataset empathetic_dialogues
+    deps:
+      - ${empathetic_dialogues.raw_dir}
+      - src/careflow/data/empathetic_dialogues.py
+      - src/careflow/data/schema.py
+      - src/careflow/data/prepare.py
+    outs:
+      - ${empathetic_dialogues.processed_dir}/train.jsonl
+      - ${empathetic_dialogues.processed_dir}/valid.jsonl
+      - ${empathetic_dialogues.processed_dir}/test.jsonl
+    metrics:
+      - ${empathetic_dialogues.processed_dir}/stats.json:
+          cache: false
+
+  download_heart:
+    cmd: uv run python scripts/prepare_data.py download --dataset heart
+    deps:
+      - src/careflow/data/download.py
+    params:
+      - configs/data.yaml:
+          - heart.source
+    outs:
+      - ${heart.raw_dir}

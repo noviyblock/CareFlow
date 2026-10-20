@@ -1,0 +1,22 @@
+# Recommended profile for a MacBook Pro M5 Pro / 48 GB.
+# Local: router, encoders, CLS heads, sycophancy detectors, distilled students.
+# API: large agents, LLM-as-a-judge, synthetic-data generation.
+compute:
+  profile: hybrid
+  device: mps           # falls back to cpu if MPS is unavailable
+  local:
+    backend: transformers  # transformers | mlx
+    encoder_model: microsoft/deberta-v3-base
+  api:
+    base_url_env: CAREFLOW_API_BASE_URL   # read from env, never committed
+    api_key_env: CAREFLOW_API_KEY
+    agent_model: deepseek-chat
+    judge_model: deepseek-chat
+    temperature: 0.0
+    max_retries: 5
+  latency:
+    # Wall-clock over the network is noisy, so we also report token-level
+    # costs (AGL/AROL from SATER, arXiv:2510.05164), which are hardware-independent.
+    report_wall_clock: true
+    report_token_costs: true
+    warmup_requests: 3

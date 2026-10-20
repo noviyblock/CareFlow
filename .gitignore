@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# Tracked by DVC, not git
+/data/raw/*
+/data/processed/*
+/data/synthetic/*
+!/data/**/.gitkeep
+/models/
+
+# Local run state
+/mlruns/
+/mlflow.db
+/.cache/
+/outputs/
+.env
+
+# Paper PDFs (copyrighted; keep local)
+/docs/papers/

@@ -1,0 +1,40 @@
+# Descriptive analysis: seeker emotion trajectories in ESConv (Empath-style micro-dynamics).
+# Also checks the classifier proxy against seekers' own intensity self-reports.
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/esconv_dynamics.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/hybrid.yaml
+
+experiment:
+  name: esconv_dynamics
+  task: esconv_dynamics
+
+mlflow:
+  experiment: careflow-eval-dynamics
+
+data:
+  dataset_dir: data/processed/esconv
+  splits: [train, valid, test]
+  # Turns whose seeker feedback is <= this mark a dialogue as "low-rated" (contrast group).
+  low_feedback_max: 2
+
+emotion_model:
+  # Hartmann (2022), Ekman 6 + neutral, DistilRoBERTa. Revision pinned.
+  id: j-hartmann/emotion-english-distilroberta-base
+  revision: 0e1cd914e3d46199ed785853e12b57304e04178b
+  batch_size: 64
+  max_length: 128
+
+polarity:
+  anger: neg
+  disgust: neg
+  fear: neg
+  sadness: neg
+  neutral: neu
+  surprise: neu
+  joy: pos
+
+flags:
+  # Hypothesis thresholds (our addition, not from Empath); calibrated later.
+  fast_k: 1
+  stuck_k: 3

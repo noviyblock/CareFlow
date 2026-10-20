@@ -1,0 +1,24 @@
+# Shared defaults. Every experiment config inherits from this file.
+# All paths are relative to the repo root; nothing is hardcoded in code.
+seed: 20260928
+deterministic: true
+
+paths:
+  data_raw: data/raw
+  data_processed: data/processed
+  data_synthetic: data/synthetic
+  models: models
+  outputs: outputs
+  cache: .cache/llm
+
+mlflow:
+  # DagsHub-hosted MLflow. Auth via env MLFLOW_TRACKING_USERNAME / MLFLOW_TRACKING_PASSWORD
+  # (DagsHub username + access token). Offline: mlflow.tracking_uri=sqlite:///mlflow.db
+  tracking_uri: https://dagshub.com/noviyblock/CareFlow.mlflow
+  experiment: careflow-dev
+  log_env: true  # pip freeze, device, git commit as artifacts/tags
+
+cache:
+  enabled: true
+  # read_write | read_only (replay only, fail on miss) | off
+  mode: read_write

@@ -1,0 +1,38 @@
+# Local model roster (MacBook Pro M5 Pro, 48 GB). All revisions pinned; checked on HF 2026-10-20.
+# System models share one family (Qwen3.5) so cheap/heavy tiers differ only in size.
+# The judge is a different family (Gemma 4) to limit self-preference bias.
+models:
+  slm:        # cheap tier: router SLM, cheap agents
+    backend: mlx
+    id: mlx-community/Qwen3.5-2B-4bit
+    revision: 674aaa7240b91e8012fcad5d791b7dfe5ba90207
+    chat_template_kwargs: {enable_thinking: false}
+  agent:      # default agent tier
+    backend: mlx
+    id: mlx-community/Qwen3.5-9B-4bit
+    revision: 8b2b98c00a6b4d291155e4890773ca8f769aee53
+    chat_template_kwargs: {enable_thinking: false}
+  heavy:      # escalation tier
+    backend: mlx
+    id: mlx-community/Qwen3.5-27B-4bit
+    revision: 45797d2985a12c55e6473686e9ea91b95e959553
+    chat_template_kwargs: {enable_thinking: false}
+  tiny:       # smoke tests only
+    backend: mlx
+    id: mlx-community/Qwen3.5-0.8B-4bit
+    revision: da28692b5f139cb0ec58a356b437486b7dac7462
+    chat_template_kwargs: {enable_thinking: false}
+  judge:      # MoE, ~4B active params: fast enough for thousands of pairwise calls
+    backend: mlx
+    id: mlx-community/gemma-4-26b-a4b-it-4bit
+    revision: 0d77464eeb233a2da68ebf9d7dc4edaac7db956d
+    chat_template_kwargs: {}
+  judge_dense:  # stronger/slower alternative for judge ablation
+    backend: mlx
+    id: mlx-community/gemma-4-31b-it-4bit
+    revision: 696d436c404745a59f30e4939a658162b0a9e57f
+    chat_template_kwargs: {}
+
+# Large models are not kept loaded together: 27B (~16 GB) + judge (~15 GB) is the practical limit.
+pool:
+  max_loaded: 2

@@ -1,0 +1,13 @@
+# Fully local profile (default for the project). Large models only as 4-bit MLX;
+# at most one large model loaded at a time.
+compute:
+  profile: local
+  device: mps
+  local:
+    backend: mlx
+    encoder_model: microsoft/deberta-v3-base
+    # Model roles and revisions: configs/models.yaml
+  latency:
+    report_wall_clock: true
+    report_token_costs: true
+    warmup_requests: 3

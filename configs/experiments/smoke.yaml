@@ -1,0 +1,12 @@
+# Checks seeding, config merging, MLflow logging and the LLM cache end-to-end.
+# Run: python scripts/run_experiment.py --config configs/experiments/smoke.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/hybrid.yaml
+
+experiment:
+  name: smoke
+  task: smoke
+
+mlflow:
+  experiment: careflow-smoke

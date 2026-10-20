@@ -1,0 +1,51 @@
+# Stage 3: does the local judge reproduce HEART's published model ranking?
+# Human pairwise labels are not released, so the reference is the paper's Elo table
+# (Table 1 / Fig. 4 of arXiv:2601.19922v2, as extracted 2026-10-20; re-check against the PDF).
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/judge_validation.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: judge_validation
+  task: judge_validation
+
+mlflow:
+  experiment: careflow-judge-validation
+
+models_config: configs/models.yaml
+judge_role: judge
+
+data:
+  completions: data/raw/heart/all_model_completions_merged_all_models.json
+
+sample:
+  n_contexts: 20          # pilot; full run: 120
+  pairs_per_context: 6
+  swap_fraction: 0.25     # share of pairs also judged in reversed order (position bias)
+  include_human: true     # adds human_completion_1 as a player (not part of the rank correlation)
+
+generation:
+  max_tokens: 900
+  temperature: 0.0
+
+bootstrap:
+  n: 500
+
+# Column name(s) in the HEART completions file -> published Elo. Lists are aliases, first non-empty wins.
+reference_elo:
+  gpt5:            {columns: [gpt5], elo: 1611.8}
+  gpto3:           {columns: [gpto3, gpto3_completion], elo: 1587.5}
+  claude45haiku:   {columns: [claude45haiku], elo: 1561.8}
+  kimik2:          {columns: [kimik2, kimik2_completion], elo: 1552.7}
+  claude45sonnet:  {columns: [claude45sonnet], elo: 1540.9}
+  gpt41mini:       {columns: [gpt41mini], elo: 1539.1}
+  claude37sonnet:  {columns: [claude37sonnet], elo: 1531.8}
+  claude4opus:     {columns: [claude4opus], elo: 1504.0}
+  gpt4o:           {columns: [gpt4o], elo: 1495.9}
+  gemini25pro:     {columns: [gemini25pro], elo: 1477.7}
+  gemini3pro:      {columns: [gemini3pro, gemini3], elo: 1471.0}
+  maverick:        {columns: [maverick], elo: 1441.2}
+  gemini25flash:   {columns: [gemini25flash], elo: 1427.9}
+  llama405b:       {columns: [405b_completion], elo: 1415.0}
+  llama70b:        {columns: [70b_completion], elo: 1384.6}
