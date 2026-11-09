@@ -1,0 +1,50 @@
+# Colab A100 roster: the SAME models and roles as configs/models.yaml, but the original HF checkpoints served by
+# vLLM (scripts/colab_serve.sh) instead of MLX 4-bit builds. Revisions checked on HF 2026-11-09.
+# Use: models_config=configs/models_colab.yaml  (+ compute: configs/compute/colab_a100.yaml)
+# NOT bit-compatible with local runs: re-validate the judge on this backend before using its verdicts
+# (configs/experiments/judge_validation.yaml with this roster), and never mix the two backends in one table.
+models:
+  slm:
+    backend: openai_compat
+    id: Qwen/Qwen3.5-2B
+    revision: 15852e8c16360a2fea060d615a32b45270f8a8fc
+    base_url: http://localhost:8002/v1
+    served_name: slm
+    chat_template_kwargs: {enable_thinking: false}
+  agent:
+    backend: openai_compat
+    id: Qwen/Qwen3.5-9B
+    revision: c202236235762e1c871ad0ccb60c8ee5ba337b9a
+    base_url: http://localhost:8001/v1
+    served_name: agent
+    chat_template_kwargs: {enable_thinking: false}
+  heavy:
+    backend: openai_compat
+    id: Qwen/Qwen3.5-27B
+    revision: fc05daec18b0a78c049392ed2e771dde82bdf654
+    base_url: http://localhost:8003/v1
+    served_name: heavy
+    chat_template_kwargs: {enable_thinking: false}
+  tiny:
+    backend: openai_compat
+    id: Qwen/Qwen3.5-0.8B
+    revision: 2fc06364715b967f1860aea9cf38778875588b17
+    base_url: http://localhost:8004/v1
+    served_name: tiny
+    chat_template_kwargs: {enable_thinking: false}
+  judge:
+    backend: openai_compat
+    id: google/gemma-4-26B-A4B-it
+    revision: 4d7ae4984b7db7de8f8457170b3f1a419ee76d52
+    base_url: http://localhost:8000/v1
+    served_name: judge
+    chat_template_kwargs: {enable_thinking: false}
+  judge_dense:
+    backend: openai_compat
+    id: google/gemma-4-31B-it
+    revision: 842da3794eaa0b77d5f08bae87a17459d91ff475
+    base_url: http://localhost:8005/v1
+    served_name: judge_dense
+    chat_template_kwargs: {enable_thinking: false}
+pool:
+  max_loaded: 6   # remote servers: "loading" is just a client

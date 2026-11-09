@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import platform
@@ -77,4 +78,8 @@ def start_run(cfg: dict[str, Any], device: str) -> Iterator[mlflow.ActiveRun]:
             mlflow.log_text(json.dumps(_environment(device), indent=2), "environment.json")
         if Path("dvc.lock").exists():
             mlflow.log_artifact("dvc.lock")
+        # pre-registration: freeze hypotheses/analysis code with the run, before any result exists
+        for f in cfg.get("prereg_files", []):
+            mlflow.log_artifact(f, "prereg")
+            mlflow.set_tag(f"prereg.sha256.{Path(f).name}", hashlib.sha256(Path(f).read_bytes()).hexdigest())
         yield run

@@ -11,6 +11,9 @@ __pycache__/
 /data/processed/*
 /data/synthetic/*
 !/data/**/.gitkeep
+# generated data versioned with `dvc add` (pointer files are tracked by git)
+!/data/synthetic/*.dvc
+!/data/synthetic/.gitignore
 /models/
 
 # Local run state

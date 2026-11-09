@@ -1,0 +1,22 @@
+# Block D, step 1: headroom of per-context routing over the systems of block B (no new LLM calls).
+# Uses systems_eval judgments vs single_9b; oracle is cross-fitted over the two presentation orders.
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/oracle_gate.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: oracle_gate
+  task: oracle_gate
+
+mlflow:
+  experiment: careflow-routing
+
+source_dir: outputs/systems_eval
+reference: single_9b
+cheap: single_2b
+option_sets:
+  two_tier: [single_2b, single_9b]
+  all: [single_2b, single_9b, react_9b, pgc_9b, debate_9b, rerank_9b, insideout_9b, roundtable_9b, careflow_9b]
+budget_points: 25
+bootstrap: {n: 1000}

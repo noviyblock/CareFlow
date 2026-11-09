@@ -1,0 +1,28 @@
+# SECONDARY (exploratory, see docs/robustness_plan.md): length-matched design on the confirmatory contexts.
+# Every system's final reply targets ~30 words, so the judge's length bias cannot favour an architecture.
+# Analysis: equivalence task with sources [outputs/confirmatory_len30].
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+seed: 20261103
+experiment:
+  name: confirmatory_len30
+  task: systems_eval
+mlflow:
+  experiment: careflow-confirmatory
+reply_length_words: 30
+models_config: configs/models.yaml
+judge_role: judge
+data: {dataset_dir: data/processed/esconv, split: train, n_contexts: 250, min_history: 4}
+embedding_model:
+  id: sentence-transformers/all-MiniLM-L6-v2
+  revision: 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+systems:
+  single_9b:     {type: single, role: agent}
+  rerank_9b:     {type: rerank, role: agent, kwargs: {n: 4, temperature: 0.8}}
+  insideout_9b:  {type: insideout, role: agent}
+  roundtable_9b: {type: roundtable, role: agent}
+references: [single_9b]
+plot_reference: single_9b
+judge: {max_tokens: 900}
+bootstrap: {n: 1000}

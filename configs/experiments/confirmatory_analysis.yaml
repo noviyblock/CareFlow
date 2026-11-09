@@ -1,0 +1,21 @@
+# PRE-REGISTERED analysis of the confirmatory run. H1: the 3 candidate-selection schemes vs single_9b,
+# TOST at delta = 0.10, alpha = 0.05 / 3 (Bonferroni over H1 only). Primary metric: LC win-rate.
+# H2 (careflow) and H3 (controls, single_2b) are read from the same table at their own alpha = 0.05.
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+seed: 20261103
+experiment:
+  name: confirmatory_analysis
+  task: equivalence
+mlflow:
+  experiment: careflow-confirmatory
+sources: [outputs/confirmatory]
+reference: single_9b
+h1_systems: [rerank_9b, insideout_9b, roundtable_9b]
+exclude: []
+sigma_words: 10
+alpha: 0.05
+power: 0.8
+deltas: [0.1, 0.05]
+bootstrap: {n: 2000}

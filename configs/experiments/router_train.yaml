@@ -1,0 +1,34 @@
+# Block D, step 2: learned pre-generation routers (train: ESConv valid, test: ESConv test) vs fixed paths,
+# a budget-matched random policy and the cross-fitted oracle. No new generations; judge labels from router_data_*.
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/router_train.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: router_train
+  task: router_train
+
+mlflow:
+  experiment: careflow-routing
+
+train_dir: outputs/router_data_valid
+test_dir: outputs/router_data_test
+data: {dataset_dir: data/processed/esconv, min_history: 4}
+reference: single_9b
+route_paths: [single_2b, single_9b, rerank_9b]
+embedding_model:
+  id: sentence-transformers/all-MiniLM-L6-v2
+  revision: 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+features:
+  last_seeker_turns: 2
+utility: {ridge_alpha: 10.0}
+cluster: {k: 8}
+llm_probe:   # SpeechLLM-style: linear head on frozen hidden states of the 0.8B model (same weights as role tiny)
+  id: mlx-community/Qwen3.5-0.8B-4bit
+  revision: da28692b5f139cb0ec58a356b437486b7dac7462
+  max_tokens: 1024
+  ridge_alpha: 1.0
+lambdas: [0.0, 0.01, 0.02, 0.03, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0]
+sigma_words: 10
+bootstrap: {n: 1000}

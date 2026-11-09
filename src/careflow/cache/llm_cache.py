@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -21,13 +22,19 @@ class CacheMiss(KeyError):
 
 
 class LLMCache:
-    def __init__(self, path: str | Path, mode: str = "read_write") -> None:
+    def __init__(self, path: str | Path, mode: str | bool = "read_write") -> None:
+        if mode is False:  # YAML parses an unquoted `off` as boolean false
+            mode = "off"
         if mode not in {"read_write", "read_only", "off"}:
             raise ValueError(f"Unknown cache mode {mode!r}")
         self.mode = mode
         self.path = Path(path)
         self.path.mkdir(parents=True, exist_ok=True)
-        self._db = sqlite3.connect(self.path / "llm_cache.sqlite")
+        # one connection shared by worker threads (compute.concurrency), serialised by a lock; WAL lets a second
+        # process (e.g. an analysis task) read while a run writes
+        self._lock = threading.Lock()
+        self._db = sqlite3.connect(self.path / "llm_cache.sqlite", check_same_thread=False, timeout=60)
+        self._db.execute("PRAGMA journal_mode=WAL")
         self._db.execute(
             "CREATE TABLE IF NOT EXISTS calls ("
             " key TEXT PRIMARY KEY, request TEXT NOT NULL, response TEXT NOT NULL,"
@@ -42,9 +49,10 @@ class LLMCache:
     def get(self, request: dict[str, Any]) -> dict[str, Any] | None:
         if self.mode == "off":
             return None
-        row = self._db.execute(
-            "SELECT response FROM calls WHERE key = ?", (self.make_key(request),)
-        ).fetchone()
+        with self._lock:
+            row = self._db.execute(
+                "SELECT response FROM calls WHERE key = ?", (self.make_key(request),)
+            ).fetchone()
         if row is None and self.mode == "read_only":
             raise CacheMiss(self.make_key(request))
         return json.loads(row[0]) if row else None
@@ -52,6 +60,10 @@ class LLMCache:
     def put(self, request: dict[str, Any], response: dict[str, Any]) -> None:
         if self.mode != "read_write":
             return
+        with self._lock:
+            self._put(request, response)
+
+    def _put(self, request: dict[str, Any], response: dict[str, Any]) -> None:
         self._db.execute(
             "INSERT OR REPLACE INTO calls VALUES (?, ?, ?, ?)",
             (

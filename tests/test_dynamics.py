@@ -29,3 +29,26 @@ def test_trajectory_flags():
 def test_summarize():
     s = summarize([trajectory(["neg", "pos"], 1, 3), trajectory(["neg", "neg", "neg"], 1, 3)])
     assert s["deescalation_rate"] == 0.5 and s["stuck_rate"] == 0.5 and s["too_fast_rate"] == 0.5
+
+
+def test_state_windows_skip_rituals():
+    from careflow.eval.state_signals import llm_intensity, spearman_ci, substantive, windows
+
+    texts = ["Hello", "I lost my job last week", "I feel really scared now", "it keeps me awake",
+             "maybe I can call them", "I will try that tomorrow", "thank you so much, bye"]
+    assert substantive(texts, 4) == [1, 2, 3, 4, 5]
+    assert windows(texts, 2, 4) == ([1, 2], [4, 5])
+    assert windows(texts, 3, 4) is None
+    assert llm_intensity(lambda p: " 4\n", ["x"]) == 4 and llm_intensity(lambda p: "n/a", ["x"]) is None
+    r = spearman_ci([1, 2, 3, 4, 5], [2, 4, 6, 8, 10], 50, 0)
+    assert abs(r["rho"] - 1.0) < 1e-9 and r["n"] == 5
+
+
+def test_paired_rho_diff():
+    from careflow.eval.state_signals import paired_rho_diff
+
+    y = list(range(50))
+    good = [v + (i % 3) for i, v in enumerate(y)]
+    noise = [(i * 7919) % 50 for i in range(50)]
+    r = paired_rho_diff(good, noise, y, 200, 0)
+    assert r["diff"] > 0.5 and r["ci_low"] > 0 and r["p_le_0"] == 0.0

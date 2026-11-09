@@ -1,0 +1,5 @@
+outs:
+- md5: 087977620710da4b687cdab5f7760148
+  size: 543643
+  hash: md5
+  path: sycophancy.jsonl

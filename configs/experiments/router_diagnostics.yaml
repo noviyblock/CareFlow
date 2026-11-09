@@ -1,0 +1,24 @@
+# Why learned routers do not capture the oracle headroom (no LLM calls): headroom split into stable vs
+# judge-split contexts, judge order-consistency per path, and whether the stable gain is predictable from the
+# context before generation (classifier trained on valid, AUROC on test).
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/router_diagnostics.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+experiment:
+  name: router_diagnostics
+  task: router_diagnostics
+mlflow:
+  experiment: careflow-routing
+reference: single_9b
+route_paths: [single_2b, single_9b, rerank_9b]
+data: {dataset_dir: data/processed/esconv, min_history: 4}
+splits:
+  valid: [outputs/router_data_valid, valid]
+  test: [outputs/router_data_test, test]
+identifiability: {train: valid, test: test, C: 0.5}
+embedding_model:
+  id: sentence-transformers/all-MiniLM-L6-v2
+  revision: 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+features: {last_seeker_turns: 2}
+bootstrap: {n: 1000}

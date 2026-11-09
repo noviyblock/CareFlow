@@ -1,0 +1,21 @@
+# Team entry point: evaluate any system against a reference on the same contexts (see docs/evaluate.md).
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/evaluate_replies.yaml \
+#        replies_file=<path.jsonl> system=<name> reference=<name> experiment.name=<run name>
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+experiment:
+  name: evaluate_replies
+  task: evaluate_replies
+mlflow:
+  experiment: careflow-team-eval
+models_config: configs/models.yaml
+judge_role: judge
+replies_file: null
+system: null
+reference: single_9b
+judge: {max_tokens: 900}
+sigma_words: 10
+alpha: 0.05
+deltas: [0.1, 0.05]
+bootstrap: {n: 2000}

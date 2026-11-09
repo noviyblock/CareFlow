@@ -6,6 +6,7 @@ original measurement. Latency experiments must run with `cache.mode=off`.
 
 from __future__ import annotations
 
+import threading
 from collections import OrderedDict
 from collections.abc import Callable
 from typing import Any
@@ -19,13 +20,32 @@ def _build(spec: dict[str, Any]) -> ChatModel:
         from careflow.llm.mlx_backend import MLXChat
 
         return MLXChat(spec["id"], spec["revision"], spec.get("chat_template_kwargs"))
+    if spec["backend"] == "openai_compat":
+        from careflow.llm.openai_backend import OpenAICompatChat
+
+        return OpenAICompatChat(spec["id"], spec["revision"], spec["base_url"], spec.get("served_name"),
+                                spec.get("api_key_env", "OPENAI_API_KEY"), spec.get("chat_template_kwargs"))
     raise ValueError(f"Unknown backend {spec['backend']!r}")
 
 
 class CachedChat:
-    def __init__(self, model: ChatModel, spec: dict[str, Any], cache: LLMCache | None) -> None:
-        self.model, self.spec, self.cache = model, spec, cache
-        self.name = model.name
+    """`model` may be a ChatModel or a zero-argument loader; a loader runs only on the first cache miss, so a run
+    replayed entirely from the cache never loads weights (no GPU memory, no load time)."""
+
+    def __init__(self, model: ChatModel | Callable[[], ChatModel], spec: dict[str, Any],
+                 cache: LLMCache | None) -> None:
+        self.spec, self.cache = spec, cache
+        self._model, self._loader = (model, None) if hasattr(model, "chat") else (None, model)
+        self._lock = threading.Lock()
+        self.name = self._model.name if self._model is not None else f"{spec['id']}@{spec['revision'][:12]}"
+
+    @property
+    def model(self) -> ChatModel:
+        if self._model is None:
+            with self._lock:  # several worker threads may hit the first cache miss at once
+                if self._model is None:
+                    self._model = self._loader()
+        return self._model
 
     def chat(
         self, messages: list[Message], max_tokens: int, temperature: float = 0.0, seed: int = 0
@@ -57,9 +77,17 @@ class ModelPool:
     ) -> None:
         self.specs, self.max_loaded, self.cache, self.builder = specs, max_loaded, cache, builder
         self._loaded: OrderedDict[str, ChatModel] = OrderedDict()
+        self._lock = threading.Lock()
 
     def get(self, role: str) -> CachedChat:
         spec = self.specs[role]
+        return CachedChat(lambda: self._load(spec), spec, self.cache)
+
+    def _load(self, spec: dict[str, Any]) -> ChatModel:
+        with self._lock:
+            return self._load_locked(spec)
+
+    def _load_locked(self, spec: dict[str, Any]) -> ChatModel:
         key = f"{spec['id']}@{spec['revision']}"
         if key in self._loaded:
             self._loaded.move_to_end(key)
@@ -68,7 +96,7 @@ class ModelPool:
                 _, old = self._loaded.popitem(last=False)
                 old.close()
             self._loaded[key] = self.builder(spec)
-        return CachedChat(self._loaded[key], spec, self.cache)
+        return self._loaded[key]
 
     def close(self) -> None:
         while self._loaded:

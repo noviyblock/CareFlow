@@ -1,0 +1,50 @@
+# Which turn-level signal tracks the seeker's self-reported emotion intensity in ESConv?
+# Follow-up to esconv_dynamics (rho = 0.06). Separates "our metric was coarse" from
+# "utterance classifiers cannot measure intensity" (docs/data.md).
+# No training: all splits are used for validation only.
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/proxy_validity.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: proxy_validity_llm
+  task: proxy_validity
+
+mlflow:
+  experiment: careflow-eval-dynamics
+
+data:
+  dataset_dir: data/processed/esconv
+  splits: [train, valid, test]
+
+window:
+  k: 3           # first/last k substantive seeker turns
+  min_words: 4   # shorter turns ("Hello", "ok") are skipped
+
+bootstrap:
+  n: 1000
+
+classifiers:
+  ekman:   # Hartmann (2022), softmax over Ekman 6 + neutral
+    id: j-hartmann/emotion-english-distilroberta-base
+    revision: 0e1cd914e3d46199ed785853e12b57304e04178b
+    multi_label: false
+    negative: [anger, disgust, fear, sadness]
+    batch_size: 64
+    max_length: 128
+  goemotions:  # GoEmotions (Demszky et al., 2020, arXiv:2005.00547), 27 emotions + neutral, sigmoid
+    id: SamLowe/roberta-base-go_emotions
+    revision: d75048347613a25d77de8cf6412eaae9fa7b26be
+    multi_label: true
+    negative: [anger, annoyance, disappointment, disapproval, disgust, embarrassment, fear, grief,
+               nervousness, remorse, sadness]
+    batch_size: 64
+    max_length: 128
+
+llm:
+  enabled: true
+  models_config: configs/models.yaml
+  role: judge         # Gemma-4-26B-A4B; swap to `agent` (Qwen3.5-9B) once downloaded
+  max_dialogues: 400  # seeded subset; classifiers are also reported on the same subset
+  max_tokens: 4

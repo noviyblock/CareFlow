@@ -1,0 +1,10 @@
+# Google Colab A100 profile. Models are vLLM servers (configs/models_colab.yaml); throughput comes from
+# concurrent requests that the server batches. Latency measured here is NOT comparable with local_mps.
+compute:
+  profile: colab_a100
+  device: cuda
+  concurrency: 32         # parallel requests per system / per judge pass
+  latency:
+    report_wall_clock: true
+    report_token_costs: true
+    warmup_requests: 3

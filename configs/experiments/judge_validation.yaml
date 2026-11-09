@@ -20,7 +20,7 @@ data:
   completions: data/raw/heart/all_model_completions_merged_all_models.json
 
 sample:
-  n_contexts: 20          # pilot; full run: 120
+  n_contexts: 60          # ~450 judge calls (~50 min on M5 Pro); full run: 120
   pairs_per_context: 6
   swap_fraction: 0.25     # share of pairs also judged in reversed order (position bias)
   include_human: true     # adds human_completion_1 as a player (not part of the rank correlation)

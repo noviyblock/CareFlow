@@ -1,0 +1,17 @@
+# Length-controlled re-analysis of head-to-head judgments (no new LLM calls).
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/length_control.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: length_control
+  task: length_control
+
+mlflow:
+  experiment: careflow-baselines
+
+sources: [outputs/systems_eval, outputs/careflow_ablation]
+reference: single_9b
+sigma_words: 10      # scale of the tanh length term
+bootstrap: {n: 500}

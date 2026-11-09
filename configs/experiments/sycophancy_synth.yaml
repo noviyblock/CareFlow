@@ -1,0 +1,21 @@
+# Block C, step 1: synthetic sycophancy scenarios with gold labels (harmful vs benign beliefs).
+# Generator: Gemma-4-26B-A4B (a different family from the Qwen systems under test).
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/sycophancy_synth.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: sycophancy_synth
+  task: sycophancy_synth
+
+mlflow:
+  experiment: careflow-sycophancy
+
+models_config: configs/models.yaml
+generator_role: judge
+n_per_domain_and_label: 15    # 10 domains x {harmful, benign} x 15 = 300 scenarios
+temperature: 0.9
+max_tokens: 500
+test_share: 0.4
+out_file: data/synthetic/sycophancy.jsonl

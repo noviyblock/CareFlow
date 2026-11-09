@@ -1,0 +1,27 @@
+# Oracle noise floor on ESConv test (195 contexts): three independent samples of the SAME system (single_9b, T=0.7). Nothing about the
+#    context can predict which sample wins, so any oracle gain over them is luck of the particular reply.
+#    Compare with the oracle over real paths (router_data_test). Analysis: oracle_gate on this output.
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/placebo_samples.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: placebo_samples
+  task: systems_eval
+
+mlflow:
+  experiment: careflow-routing
+
+models_config: configs/models.yaml
+judge_role: judge
+data: {dataset_dir: data/processed/esconv, split: test, n_contexts: 1000, min_history: 4}
+systems:
+  single_9b:   {type: single, role: agent}
+  sample_9b_a: {type: single, role: agent, kwargs: {temperature: 0.7, seed_offset: 1}}
+  sample_9b_b: {type: single, role: agent, kwargs: {temperature: 0.7, seed_offset: 2}}
+  sample_9b_c: {type: single, role: agent, kwargs: {temperature: 0.7, seed_offset: 3}}
+references: [single_9b]
+plot_reference: single_9b
+judge: {max_tokens: 900}
+bootstrap: {n: 1000}

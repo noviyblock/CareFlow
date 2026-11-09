@@ -1,0 +1,18 @@
+# Oracle over the real routing paths on ESConv test (195 contexts), for comparison with placebo_oracle.
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+experiment:
+  name: real_oracle_test
+  task: oracle_gate
+mlflow:
+  experiment: careflow-routing
+reference: single_9b
+budget_points: 25
+bootstrap: {n: 1000}
+source_dir: outputs/router_data_test
+cheap: single_2b
+option_sets:
+  two_tier: [single_2b, single_9b]
+  three_paths: [single_2b, single_9b, rerank_9b]
+frontier_set: three_paths

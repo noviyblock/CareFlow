@@ -1,0 +1,22 @@
+# Equivalence (TOST) and power analysis of head-to-head results vs single_9b (no new LLM calls).
+# Margins: 0.05 = a 55/45 preference (smallest effect of interest), 0.10 = 60/40 (lenient).
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/equivalence.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: equivalence
+  task: equivalence
+
+mlflow:
+  experiment: careflow-baselines
+
+sources: [outputs/systems_eval, outputs/careflow_ablation]
+reference: single_9b
+exclude: [careflow_noctx]   # identical to single_9b in 58/60 contexts (docs/results.md)
+sigma_words: 10
+alpha: 0.05
+power: 0.8
+deltas: [0.05, 0.1]
+bootstrap: {n: 2000}

@@ -26,12 +26,13 @@ models:
     backend: mlx
     id: mlx-community/gemma-4-26b-a4b-it-4bit
     revision: 0d77464eeb233a2da68ebf9d7dc4edaac7db956d
-    chat_template_kwargs: {}
+    # Gemma 4 thinks by default unless the flag is passed explicitly.
+    chat_template_kwargs: {enable_thinking: false}
   judge_dense:  # stronger/slower alternative for judge ablation
     backend: mlx
     id: mlx-community/gemma-4-31b-it-4bit
     revision: 696d436c404745a59f30e4939a658162b0a9e57f
-    chat_template_kwargs: {}
+    chat_template_kwargs: {enable_thinking: false}
 
 # Large models are not kept loaded together: 27B (~16 GB) + judge (~15 GB) is the practical limit.
 pool:

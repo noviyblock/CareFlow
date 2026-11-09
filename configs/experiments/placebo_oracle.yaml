@@ -1,0 +1,19 @@
+# Oracle noise floor from placebo_samples (no LLM calls). Same structure as the real 3-path oracle
+# {single_2b, single_9b, rerank_9b}: the reference + two alternatives, here two samples of the same system.
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+experiment:
+  name: placebo_oracle
+  task: oracle_gate
+mlflow:
+  experiment: careflow-routing
+reference: single_9b
+budget_points: 25
+bootstrap: {n: 1000}
+source_dir: outputs/placebo_samples
+cheap: single_9b
+option_sets:
+  placebo_ref_plus_2: [single_9b, sample_9b_a, sample_9b_b]
+  placebo_3_samples: [sample_9b_a, sample_9b_b, sample_9b_c]
+frontier_set: placebo_3_samples

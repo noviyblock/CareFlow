@@ -1,0 +1,6 @@
+# Analysis of the length-matched secondary run (same procedure as confirmatory_analysis).
+inherit:
+  - confirmatory_analysis.yaml
+experiment:
+  name: confirmatory_len30_analysis
+sources: [outputs/confirmatory_len30]

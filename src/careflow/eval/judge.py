@@ -6,9 +6,10 @@ The rubric and output format are taken verbatim from the released HEART code
 1. Speaker labels come from `speakers` (HEART's `prev_speakers`). The released
    code labels even turns as Seeker, which is wrong for 149/280 regular
    contexts whose history starts with the supporter.
-2. Parsing is strict: a missing category or an ambiguous winner raises
-   JudgeParseError instead of HEART's fallback that turns any mention of a
-   respondent id into a win for every category.
+2. Parsing never invents a winner (HEART's fallback turns any mention of a
+   respondent id into a win for every category). `overall_eq` is required;
+   an unreadable secondary category (e.g. "A0493" without a magnitude, or a
+   typo like "A04493") is returned as None and counted for nobody.
 """
 
 from __future__ import annotations
@@ -123,22 +124,19 @@ def messages(prompt: str) -> list[dict[str, str]]:
 _VERDICT = re.compile(rf"({ID_A}|{ID_B})\s*(\+{{1,5}})(?!\+)")
 
 
-def parse(text: str) -> dict[str, Verdict]:
-    start, end = text.find("{"), text.rfind("}")
-    if start == -1 or end <= start:
+def parse(text: str) -> dict[str, Verdict | None]:
+    start = text.find("{")
+    if start == -1:
         raise JudgeParseError("no JSON object in judge output")
     try:
-        obj = json.loads(text[start : end + 1])
+        obj, _ = json.JSONDecoder().raw_decode(text[start:])  # ignores anything after the first object
     except json.JSONDecodeError as e:
         raise JudgeParseError(f"invalid JSON: {e}") from e
-    out = {}
+    out: dict[str, Verdict | None] = {}
     for cat in CATEGORIES:
-        value = obj.get(cat)
-        if not isinstance(value, str):
-            raise JudgeParseError(f"missing category {cat}")
-        found = _VERDICT.findall(value)
-        if len({w for w, _ in found}) != 1:
-            raise JudgeParseError(f"ambiguous or missing winner for {cat}: {value!r}")
-        winner, plus = found[0]
-        out[cat] = Verdict(winner, len(plus))
+        value = obj.get(cat) if isinstance(obj, dict) else None
+        found = _VERDICT.findall(value) if isinstance(value, str) else []
+        out[cat] = Verdict(found[0][0], len(found[0][1])) if len({w for w, _ in found}) == 1 else None
+    if out["overall_eq"] is None:
+        raise JudgeParseError(f"missing or ambiguous overall_eq: {obj.get('overall_eq') if isinstance(obj, dict) else obj!r}")
     return out

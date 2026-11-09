@@ -1,0 +1,49 @@
+# Block B: all systems on the same ESConv test sample, judged vs the human supporter reply
+# (HEART rubric, both presentation orders). Output: table + quality-vs-latency figure.
+# This is the single evaluate(system) entry point: add a system below and rerun.
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/systems_eval.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: systems_eval
+  task: systems_eval
+
+mlflow:
+  experiment: careflow-baselines
+
+models_config: configs/models.yaml
+judge_role: judge
+
+data:
+  dataset_dir: data/processed/esconv
+  split: test
+  n_contexts: 60
+  min_history: 4
+
+embedding_model:   # for the reranking baseline
+  id: sentence-transformers/all-MiniLM-L6-v2
+  revision: 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+
+# name -> type (careflow.agents.systems.SYSTEMS) + model role (configs/models.yaml) + kwargs
+systems:
+  single_2b:     {type: single, role: slm}
+  single_9b:     {type: single, role: agent}
+  react_9b:      {type: react, role: agent}
+  pgc_9b:        {type: pgc, role: agent}
+  debate_9b:     {type: debate, role: agent, kwargs: {n_agents: 2, temperature: 0.7}}
+  rerank_9b:     {type: rerank, role: agent, kwargs: {n: 4, temperature: 0.8}}
+  insideout_9b:  {type: insideout, role: agent}
+  roundtable_9b: {type: roundtable, role: agent}
+  careflow_9b:   {type: careflow_mas, role: agent}
+
+# Each system is judged vs every reference (both orders). "human" = the ESConv supporter turn.
+# vs-human saturates (all systems win 92-98%), so systems are also compared head-to-head with single_9b.
+references: [human, single_9b]
+plot_reference: single_9b
+
+judge:
+  max_tokens: 900
+bootstrap:
+  n: 1000

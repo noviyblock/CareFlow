@@ -1,0 +1,28 @@
+# Block D: per-context labels for router training. Three paths judged head-to-head vs single_9b
+# (both orders) on every ESConv valid dialogue; the 60-context block-B sample is a cached subset of test.
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/router_data_valid.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: router_data_valid
+  task: systems_eval
+
+mlflow:
+  experiment: careflow-routing
+
+models_config: configs/models.yaml
+judge_role: judge
+data: {dataset_dir: data/processed/esconv, split: valid, n_contexts: 1000, min_history: 4}
+embedding_model:
+  id: sentence-transformers/all-MiniLM-L6-v2
+  revision: 1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+systems:
+  single_2b: {type: single, role: slm}
+  single_9b: {type: single, role: agent}
+  rerank_9b: {type: rerank, role: agent, kwargs: {n: 4, temperature: 0.8}}
+references: [single_9b]
+plot_reference: single_9b
+judge: {max_tokens: 900}
+bootstrap: {n: 1000}

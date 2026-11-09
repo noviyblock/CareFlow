@@ -1,0 +1,8 @@
+# Overlay that moves any experiment to Colab A100 (vLLM servers, concurrent requests):
+#   python scripts/run_experiment.py --config <experiment.yaml> --overlay configs/colab.yaml experiment.name=<name>_colab
+# Always give Colab runs their own experiment.name: their outputs are not comparable with local MLX runs.
+inherit:
+  - compute/colab_a100.yaml
+models_config: configs/models_colab.yaml
+mlflow:
+  log_env: true

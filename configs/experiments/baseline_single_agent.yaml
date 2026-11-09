@@ -1,0 +1,32 @@
+# E3: first quality x latency point. Single-agent Qwen3.5 (2B, 9B) vs the human supporter
+# reply in ESConv test, judged pairwise with the HEART rubric (both presentation orders).
+# Run: uv run python scripts/run_experiment.py --config configs/experiments/baseline_single_agent.yaml
+inherit:
+  - ../base.yaml
+  - ../compute/local_mps.yaml
+
+experiment:
+  name: baseline_single_agent
+  task: baseline_single_agent
+
+mlflow:
+  experiment: careflow-baselines
+
+models_config: configs/models.yaml
+generators: [slm, agent]   # Qwen3.5-2B, Qwen3.5-9B
+judge_role: judge
+
+data:
+  dataset_dir: data/processed/esconv
+  split: test            # evaluation only; nothing is trained here
+  n_contexts: 60         # one supporter turn per dialogue, seeded
+  min_history: 4         # turns before the target supporter turn
+
+generation:
+  max_tokens: 120
+  temperature: 0.0
+judge:
+  max_tokens: 900
+
+bootstrap:
+  n: 1000

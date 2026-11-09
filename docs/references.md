@@ -37,9 +37,13 @@ Liu, Shen, Che, Ghandi, Li. *AIMS: Cost-Efficient LLM-Based Agent Deployment in 
 - **Что даёт проекту.** Маршрутизация по агентам MAS, а не по запросу целиком. Это ровно наш гибридный профиль: анализ контекста и safety локально, генерация по API.
 - **Ограничения.** Домен — агентные задачи, не ESC. Полный текст не читали: ACM DL отдаёт 403, PDF в репозитории нет. Цифры взяты из аннотации.
 
-### ❌ «Selection effect», «arXiv 2935» — идентификатор неполный
-`2935` — невалидный arXiv ID. `2609.02935` — посторонняя статья про химию PFAS. Пользователь в следующем сообщении ссылку не дал.
-Ближайший кандидат — **arXiv:2609.17977**, Udayagiri, Chouhan, Kanagala, Pavagada. *When to Call an LLM: A Confidence-Gated Hybrid for Cost-Effective Emotion Recognition in Conversational AI.* 2026-09-16. В его Appendix K сказано: при более сильном энкодере (DistilBERT) выигрыш гибрида статистически неотличим (p=.096). Но главный вывод статьи противоположный (гибрид Pareto-доминирует), а conformal abstention и oracle gate в Appendix D нет. **До получения полного ID на «Section 2» и «Appendix D» не ссылаемся.**
+### ⚠️ Selection Effect — submission #2935 (PDF от пользователя; прочитаны основной текст и прил. A–C, прил. D — выборочно)
+Tikhomirov, Savchenko (Central University, HSE, Sber AI Lab). *The Selection Effect: Why Compact LLM Verifiers for Emotion Classification Fail Behind Encoder Confidence Gates.* PDF `2935_The_Selection_Effect_Why_ (2).pdf`, собран 2026-08-29, 20 стр.; код: github.com/tikhomirovd/selective-emotion-classification. «2935» — номер подачи, не arXiv ID; публикация/площадка не подтверждены.
+- **Задача:** закрытая классификация эмоций (Ekman-7) на GoEmotions, EmpatheticDialogues (ситуационные метки), русском CEDR; контроль — AG News. Метрика — macro-F1 по золотым меткам.
+- **Метод:** encoder-first routing: RoBERTa/DeBERTa/XLM-R предсказывает, неуверенные примеры (margin / max-prob / entropy, 6 альтернативных гейтов, error-oracle) отправляются верификатору или в abstain; NSGA-II-поиск по порогам и 7 верификаторам (Qwen3.5-4B zero-shot, LoRA-Qwen, голосование, self-consistency, MultiAgentESC-style, гетерогенные роли, второй энкодер); split-conformal как альтернатива. Задержка — Apple Silicon/Ollama.
+- **Вывод:** ни один компактный LLM-верификатор не улучшает фронт «качество/стоимость»; механизм — *selection effect*: гейт отправляет примеры, неоднозначные для самих людей-разметчиков, где энкодер и LLM ошибаются вместе. Масштаб 4B → 397B не помогает. Исключение — ED (энкодер перенесён zero-shot): там эскалация выигрывает (их положительный контроль).
+- **Связь с нами:** тот же вопрос «окупается ли добавочное LLM-вычисление», но для **классификации**, не генерации ответа. Не пересекается с нашими RQ2 (MAS для генерации), протоколом оценки (судья, длина, потолок vs человек), sycophancy. Пересекается с отложенной частью этапа 7 (порог по confidence, conformal abstention для эмоций) — **её не делаем, ссылаемся**. Их ED-исключение согласуется с нашим E1 (классификаторы эмоций слабы на диалогах поддержки).
+- **Ссылки из этой работы для нас (не проверены):** Xu et al. 2026, *Rethinking the value of multi-agent workflow: A strong single agent baseline*, arXiv:2601.12307; MultiAgentESC (Xu et al., EMNLP 2025, LLM-based multi-agent framework for ESC) — опубликованная MAS для ESC, стоит добавить как бейзлайн; RouteLLM (Ong et al., ICLR 2025); FrugalGPT (arXiv:2305.05176); DAAO (Su et al., WWW 2026, arXiv:2509.11079).
 
 ## 2. Топология MAS
 
@@ -94,6 +98,12 @@ Gong, Huang, Liang, Deas, Subbiah, McKeown, Hirschberg. *Empath: Tracing Multi-L
 - **Что даёт проекту.** Transition matrices, persistence, de-escalation rate. Основа детектора sycophancy через аномальную динамику.
 - **Ограничения.** Узкий домен: текстовые кризисные диалоги с чернокожими пользователями о горе. Пороги «аномальности» калибруем на ESConv. Идея «sycophancy = аномальная динамика» — наша гипотеза, в статье её нет.
 
+### ✅ Length-Controlled AlpacaEval — arXiv:2404.04475
+Dubois, Galambosi, Liang, Hashimoto. *Length-Controlled AlpacaEval: A Simple Way to Debias Automatic Evaluators.* 2024. GLM с членом длины (tanh) и общим для всех систем коэффициентом; LC win-rate = предсказание при нулевой разнице длин. **У нас:** `eval/length_control.py`.
+
+### ⚠️ TOST / тесты эквивалентности — doi:10.1177/1948550617697177
+Lakens, D. *Equivalence Tests: A Practical Primer for t Tests, Correlations, and Meta-Analyses.* Social Psychological and Personality Science, 2017. Процедура TOST (Schuirmann, 1987): эквивалентность в пределах δ, если (1−2α) CI внутри [−δ, δ]. **Цитируется по памяти — сверить DOI перед подачей.** **У нас:** `eval/equivalence.py`.
+
 ## 5. Синтетика и память
 
 ### ⚠️ Role-Guided Synthesis — DOI 10.1007/978-981-95-3352-7_46
@@ -145,7 +155,7 @@ Wang, Wang, Yu. *BiCFlow-MER: Orchestrating Discriminative and Generative Multim
 | EmpatheticDialogues | Rashkin, Smith, Li, Boureau, *Towards Empathetic Open-domain Conversation Models: a New Benchmark and Dataset*, ACL 2019, arXiv:1811.00207 | ✅ | 32 эмоции, ~25k диалогов. CC BY-NC 4.0 |
 | TIDE | BN et al., EMNLP 2025, arXiv:2505.15065; HF `yenopoya/TIDE` | ⚠️ | 10k синтетических **двухтуровых** диалогов: для многотуровой динамики не годится. Проверить полноту релиза |
 | EmoCare | неоднозначно | ❌ | (а) датасет «EmoCare (Psych8K)», упомянут в arXiv:2601.18630; (б) IEEE-чатбот EmoCare. Уточнить |
-| KardiaBench | Kardia-R1, arXiv:2512.01282 | ⚠️ ID из выдачи | |
+| KardiaBench | Kardia-R1, arXiv:2512.01282 (WWW 2026); github.com/JhCircle/Kardia-R1, MIT | ✅ ID сверен с репозиторием | 22 080 многотуровых эмпатических диалогов, 671 персона; HF, доступ по запросу; модель Kardia-R1-7B |
 | TEA-Bench | arXiv:2601.18700 | ⚠️ ID из выдачи | tool-augmented ESC |
 | MoodBench 1.0 | arXiv:2511.18926 | ⚠️ ID из выдачи | emotional companionship |
 | HEART | arXiv:2601.19922 | ✅ | см. §4 |
@@ -175,3 +185,32 @@ Hartmann, J. (2022). Модель на HF Hub, ревизия `0e1cd914`; arXiv-
 - Ekman, P. (1992). *An argument for basic emotions.* Cognition & Emotion 6(3–4). На ней основан InsideOut.
 
 Данные классики приведены по памяти, перед BibTeX сверить.
+
+
+## 10. Материалы от 2026-11-09 (прочитаны / просмотрены)
+
+### ✅ MASCOT — EMNLP 2026 main, pp. 20293–20313 (PDF `2026.emnlp-main.878.pdf`, прочитан основной текст + прил. C)
+Wang, Jin, Cabral, Hester (Georgia Tech, MIT). *MASCOT: Multi-Agent Socio-Collaborative Companion Systems.* Код: github.com/hello-diana/MASCOT.
+- **Что:** MAS-«группа поддержки» из нескольких персон + Director; двухуровневая оптимизация: RLAIF для верности персоне каждого агента и групповая награда для директора (LoRA на Qwen3-8B, reward-модели на Qwen3-0.6B). Названные проблемы MAS: *persona collapse* и *social sycophancy* («yes-man» между агентами).
+- **Оценка:** EmpatheticDialogues + QMSum, ESConv как held-out (прил. C.1); судьи GPT-4o и др., человеческая оценка; +14.1 persona consistency, на ESConv +10.8 по агентным критериям.
+- **Связь с нами:** (1) прямое подтверждение нашей ablation-находки другим путём: без обучения MAS деградирует в шаблон; (2) их бейзлайны — только *многоагентные* при том же наборе агентов («isolates the optimization strategy»), сильного single-agent бейзлайна с равной стоимостью нет, длина контролируется только инструкцией судье (ссылаются на LC-AlpacaEval, но статистической поправки нет) — это ровно та дыра, которую закрывает наш протокол; (3) их «social sycophancy» — согласие *между агентами*, наша — согласие *с вредным убеждением пользователя*: разные явления, надо явно развести в related work; (4) MultiAgentESC у них — бейзлайн, ещё один довод добавить его к нашим 9 схемам.
+
+### ✅ MentalHealthBench — OpenAI (PDF, прочитаны аннотация и разделы 2–4 выборочно)
+Malik, Grabb, … Singhal. *MentalHealthBench: An Expert-Informed Benchmark of AI Capabilities in Realistic Mental Health Conversations.*
+- **Что:** 1 215 реалистичных разговоров (уровни острóты: non-acute / high-acuity ≈ 18% / emergent), к каждому — взвешенные рубрики от 80+ лицензированных клиницистов (двое пишут вслепую, третий разрешает разногласия); 10 поведенческих осей, в т.ч. *urgency calibration*, *seeking context* (штраф и за недостаток, и за лишние вопросы), *reality-testing calibration*.
+- **Связь с нами:** (1) операционализация «уместности» и «навязчивости» из нашей постановки — их оси можно взять как рубрику вместо придумывания своей; (2) «reality-testing calibration» ≈ наша сикофантия (не подтверждать искажённые убеждения) — внешняя опора для трёхаспектной схемы; (3) их вывод «пользователи ≠ эксперты» — довод, что наша ручная разметка должна иметь клиническую инструкцию. ⚠️ Доступность данных не проверена (в тексте ссылки на релиз не нашли) — уточнить.
+
+### ⚠️ SAGE — Sentient Agent as a Judge (github.com/Tencent/digitalhuman/tree/main/SAGE)
+Оценка LLM через симулированного пользователя с меняющимся эмоциональным состоянием (emotion score 0–100 по ходу диалога); лидерборд 20 моделей. Код и профили симулятора открыты. arXiv ID и лицензия на странице не указаны — сверить.
+- **Связь с нами:** единственный найденный способ получить **метку изменения состояния** без людей — то, чего нам не хватает для RQ «эмоциональная динамика» (ESConv отфильтрован, классификаторы не ловят изменение). Кандидат на многотуровую оценку CareFlow v2 и на проверку детектора «аномальной траектории». Риск: состояние симулятора — тоже LLM, его валидность надо проверять.
+
+### ✅ MentalBench-Align — arXiv:2510.19032, MIT (github.com/abeerbadawi/MentalBench-Align)
+*When Can We Trust LLMs in Mental Health? Large-Scale Benchmarks for Reliable Dialogue Evaluation and Alignment.* MentalBench-100k (10k разговоров, 23 состояния, 1 человеческий + 9 LLM-ответов) и **MentalAlign-70k: 70 000 оценок от 3 клинических экспертов и 4 LLM-судей** по 7 атрибутам.
+- **Вывод авторов:** LLM-судьи завышают аффективные атрибуты на 0.4–0.8; эмпатия/полезность выглядят надёжно, но с широкой неопределённостью; **safety и relevance — плохая надёжность у всех судей**.
+- **Связь с нами:** готовые человеческие оценки — можно **проверить нашего судью (Gemma) на людях без собственной разметки** (то, чего не позволял HEART). Их вывод про safety — довод не доверять судье в вопросах безопасности и держать отдельную разметку.
+
+### ⚠️ ES-MemEval (github.com/slptongji/ES-MemEval)
+Бенчмарк долговременной памяти в эмоциональной поддержке (данные `data/evo_emo.json`; метрики F1/BERTScore/LLM-judge; модели Mistral, Phi-3, GPT с RAG и без). arXiv и лицензия на странице не указаны. Связь — только RQ7 (память), который мы выводим из основной статьи; держать как ссылку для future work.
+
+### Не литература: NeuralDeep (neuraldeep.tech/en/pricing)
+OpenAI-совместимый API к открытым моделям на российских GPU (Qwen 3.6 / 3.8, gpt-oss-120b; от ~5–31 ₽ за 1M входных токенов; подписка от 2 500 ₽/мес; оплата российскими картами). **Применение:** второй судья другого семейства (gpt-oss-120b) или 27B+-модели без сервера коллеги. Оговорка: API не детерминирован и меняется — только с нашим кэшем вызовов и фиксацией даты; данные (ESConv/синтетика) уходят третьей стороне — проверить лицензии датасетов (ESConv — CC BY-NC).
