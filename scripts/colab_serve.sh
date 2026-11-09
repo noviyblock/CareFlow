@@ -17,18 +17,36 @@ print(m["id"], m["revision"], m["base_url"].split(":")[-1].split("/")[0])
 PY
 }
 
+fetch() {  # download weights first, with visible progress (the server itself downloads silently)
+  read -r id revision _ < <(rev "$1")
+  echo "downloading $id@${revision:0:12} (first time: tens of GB) ..."
+  bin="${VLLM%/vllm}"; cli="$bin/hf"; [ -x "$cli" ] || cli="$bin/huggingface-cli"
+  if HF_HUB_ENABLE_HF_TRANSFER=1 "$cli" download "$id" --revision "$revision" --exclude "*.pth" "original/*" \
+       >/dev/null; then echo "  weights ready"; else echo "  pre-download failed; vLLM will download itself"; fi
+}
+
 serve() {  # role  gpu_fraction  max_len  [extra args]
+  fetch "$1"
   read -r id revision port < <(rev "$1")
-  echo "starting $1 = $id@${revision:0:12} on :$port (gpu ${2})"
+  echo "starting $1 = $id@${revision:0:12} on :$port (gpu ${2}) ${*:4}"
   nohup "$VLLM" serve "$id" --revision "$revision" --served-model-name "$1" --port "$port" \
     --gpu-memory-utilization "$2" --max-model-len "$3" --enable-prefix-caching "${@:4}" \
     > "$LOGS/$1.log" 2>&1 &
+  echo $! > "$LOGS/$1.pid"
 }
 
-wait_up() {
+wait_up() {  # fail fast if the server dies; show its last log line every 30 s; up to 30 min (weights load + compile)
   read -r _ _ port < <(rev "$1")
-  for _ in $(seq 1 180); do curl -sf "http://localhost:$port/v1/models" >/dev/null && { echo "$1 up"; return; }; sleep 5; done
-  echo "$1 did not start, see $LOGS/$1.log"; exit 1
+  pid=$(cat "$LOGS/$1.pid")
+  for i in $(seq 1 360); do
+    curl -sf "http://localhost:$port/v1/models" >/dev/null && { echo "$1 up"; return; }
+    if ! kill -0 "$pid" 2>/dev/null; then
+      echo "$1 server exited — last log lines:"; tail -n 30 "$LOGS/$1.log"; exit 1
+    fi
+    (( i % 6 == 0 )) && echo "  [$1 $((i * 5))s] $(tail -n 1 "$LOGS/$1.log" | cut -c1-160)"
+    sleep 5
+  done
+  echo "$1 did not answer in 30 min, see $LOGS/$1.log"; exit 1
 }
 
 case "${1:-}" in
